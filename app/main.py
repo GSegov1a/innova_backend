@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
-from app.routes import children, root, sessions, turns, voice
+from app.routes import children, realtime, root, sessions, turns, voice
 
 
 Base.metadata.create_all(bind=engine)
@@ -22,3 +22,4 @@ app.include_router(children.router)
 app.include_router(sessions.router)
 app.include_router(turns.router)
 app.include_router(voice.router)
+app.include_router(realtime.router)

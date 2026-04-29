@@ -22,7 +22,9 @@ SessionLocal = sessionmaker(
 class Base(DeclarativeBase):
     pass
 
+
 def get_db():
+    """Entrega una sesión de base de datos y la cierra al terminar la request."""
     db = SessionLocal()
     try:
         yield db

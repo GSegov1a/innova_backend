@@ -1,0 +1,9 @@
+.venv
+.env
+__pycache__/
+*.db
+*.sqlite3
+*.log
+.vscode/
+.codex
+manual_testing/

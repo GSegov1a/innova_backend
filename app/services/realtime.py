@@ -103,12 +103,8 @@ async def create_openai_realtime_call(sdp_offer: str, session_config: dict) -> s
             OPENAI_REALTIME_CALLS_URL,
             headers={"Authorization": f"Bearer {api_key}"},
             files={
-                "sdp": ("offer.sdp", sdp_offer.encode("utf-8"), "application/sdp"),
-                "session": (
-                    "session.json",
-                    json.dumps(session_config).encode("utf-8"),
-                    "application/json",
-                ),
+                "sdp": (None, sdp_offer),
+                "session": (None, json.dumps(session_config), "application/json"),
             },
         )
 

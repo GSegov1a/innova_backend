@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import httpx
@@ -10,6 +11,7 @@ from app.services.conversations import get_last_turns, get_or_create_active_sess
 
 
 OPENAI_REALTIME_CALLS_URL = "https://api.openai.com/v1/realtime/calls"
+LOGGER = logging.getLogger("innova-realtime")
 
 
 def get_realtime_model() -> str:
@@ -25,6 +27,11 @@ def get_realtime_voice() -> str:
 def get_realtime_transcription_model() -> str:
     """Obtiene el modelo usado para transcribir el audio entrante."""
     return os.getenv("OPENAI_REALTIME_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
+
+
+def get_realtime_noise_reduction() -> str:
+    """Obtiene el tipo de reducción de ruido para la entrada de audio."""
+    return os.getenv("OPENAI_REALTIME_NOISE_REDUCTION", "near_field")
 
 
 def get_vad_threshold() -> float:
@@ -88,7 +95,7 @@ def build_realtime_session_config(child: Child, previous_turns) -> dict:
                     "model": get_realtime_transcription_model(),
                 },
                 "noise_reduction": {
-                    "type": os.getenv("OPENAI_REALTIME_NOISE_REDUCTION", "near_field"),
+                    "type": get_realtime_noise_reduction(),
                 },
                 "turn_detection": {
                     "type": "server_vad",
@@ -127,12 +134,38 @@ def build_realtime_instructions(child: Child, previous_turns) -> str:
     return f"{instructions}\n\nContexto reciente de la conversación:\n{history}"
 
 
+def log_realtime_session_config(session_config: dict):
+    """Registra la configuración Realtime efectiva sin secretos."""
+    audio = session_config.get("audio", {})
+    audio_input = audio.get("input", {})
+    turn_detection = audio_input.get("turn_detection", {})
+    noise_reduction = audio_input.get("noise_reduction", {})
+    transcription = audio_input.get("transcription", {})
+    audio_output = audio.get("output", {})
+
+    LOGGER.info(
+        "Realtime config: model=%s voice=%s transcription=%s noise_reduction=%s "
+        "vad_type=%s vad_threshold=%s vad_prefix_ms=%s vad_silence_ms=%s interrupt_response=%s",
+        session_config.get("model"),
+        audio_output.get("voice"),
+        transcription.get("model"),
+        noise_reduction.get("type"),
+        turn_detection.get("type"),
+        turn_detection.get("threshold"),
+        turn_detection.get("prefix_padding_ms"),
+        turn_detection.get("silence_duration_ms"),
+        turn_detection.get("interrupt_response"),
+    )
+
+
 async def create_openai_realtime_call(sdp_offer: str, session_config: dict) -> str:
     """Intercambia el SDP offer local por un SDP answer de OpenAI Realtime."""
     api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key is not configured")
+
+    log_realtime_session_config(session_config)
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(

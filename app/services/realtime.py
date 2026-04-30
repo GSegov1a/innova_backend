@@ -27,6 +27,21 @@ def get_realtime_transcription_model() -> str:
     return os.getenv("OPENAI_REALTIME_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
 
 
+def get_vad_threshold() -> float:
+    """Obtiene el umbral de activación VAD; más alto exige voz más fuerte."""
+    return float(os.getenv("OPENAI_REALTIME_VAD_THRESHOLD", "0.75"))
+
+
+def get_vad_silence_duration_ms() -> int:
+    """Obtiene cuánto silencio se espera antes de cerrar el turno."""
+    return int(os.getenv("OPENAI_REALTIME_VAD_SILENCE_MS", "900"))
+
+
+def get_vad_prefix_padding_ms() -> int:
+    """Obtiene cuánto audio previo al inicio de voz se conserva."""
+    return int(os.getenv("OPENAI_REALTIME_VAD_PREFIX_MS", "300"))
+
+
 def verify_device_token(device_token: str | None):
     """Valida que el Raspberry esté autorizado para usar endpoints Realtime."""
     expected_token = os.getenv("RASPBERRY_DEVICE_TOKEN")
@@ -61,6 +76,17 @@ def build_realtime_session_config(child: Child, previous_turns) -> dict:
             "input": {
                 "transcription": {
                     "model": get_realtime_transcription_model(),
+                },
+                "noise_reduction": {
+                    "type": os.getenv("OPENAI_REALTIME_NOISE_REDUCTION", "near_field"),
+                },
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": get_vad_threshold(),
+                    "prefix_padding_ms": get_vad_prefix_padding_ms(),
+                    "silence_duration_ms": get_vad_silence_duration_ms(),
+                    "create_response": True,
+                    "interrupt_response": False,
                 },
             },
             "output": {

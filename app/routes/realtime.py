@@ -41,6 +41,12 @@ async def create_realtime_sdp(
     if not sdp_offer:
         raise HTTPException(status_code=400, detail="SDP offer is required")
 
+    if not sdp_offer.startswith("v=0"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid SDP offer received. Length: {len(sdp_offer)}",
+        )
+
     child, session, previous_turns = prepare_realtime_session(db, child_id)
     session_config = build_realtime_session_config(child, previous_turns)
     sdp_answer = await create_openai_realtime_call(sdp_offer, session_config)

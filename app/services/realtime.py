@@ -42,6 +42,16 @@ def get_vad_prefix_padding_ms() -> int:
     return int(os.getenv("OPENAI_REALTIME_VAD_PREFIX_MS", "300"))
 
 
+def get_vad_interrupt_response() -> bool:
+    """Obtiene si una nueva voz debe interrumpir respuestas en curso."""
+    return os.getenv("OPENAI_REALTIME_VAD_INTERRUPT_RESPONSE", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 def verify_device_token(device_token: str | None):
     """Valida que el Raspberry esté autorizado para usar endpoints Realtime."""
     expected_token = os.getenv("RASPBERRY_DEVICE_TOKEN")
@@ -86,7 +96,7 @@ def build_realtime_session_config(child: Child, previous_turns) -> dict:
                     "prefix_padding_ms": get_vad_prefix_padding_ms(),
                     "silence_duration_ms": get_vad_silence_duration_ms(),
                     "create_response": True,
-                    "interrupt_response": False,
+                    "interrupt_response": get_vad_interrupt_response(),
                 },
             },
             "output": {

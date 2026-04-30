@@ -36,12 +36,12 @@ def get_realtime_noise_reduction() -> str:
 
 def get_vad_threshold() -> float:
     """Obtiene el umbral de activación VAD; más alto exige voz más fuerte."""
-    return float(os.getenv("OPENAI_REALTIME_VAD_THRESHOLD", "0.75"))
+    return float(os.getenv("OPENAI_REALTIME_VAD_THRESHOLD", "0.85"))
 
 
 def get_vad_silence_duration_ms() -> int:
     """Obtiene cuánto silencio se espera antes de cerrar el turno."""
-    return int(os.getenv("OPENAI_REALTIME_VAD_SILENCE_MS", "900"))
+    return int(os.getenv("OPENAI_REALTIME_VAD_SILENCE_MS", "1200"))
 
 
 def get_vad_prefix_padding_ms() -> int:

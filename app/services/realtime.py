@@ -103,7 +103,7 @@ async def create_openai_realtime_call(sdp_offer: str, session_config: dict) -> s
             OPENAI_REALTIME_CALLS_URL,
             headers={"Authorization": f"Bearer {api_key}"},
             files={
-                "sdp": (None, sdp_offer),
+                "sdp": (None, sdp_offer, "application/sdp"),
                 "session": (None, json.dumps(session_config), "application/json"),
             },
         )
@@ -113,6 +113,7 @@ async def create_openai_realtime_call(sdp_offer: str, session_config: dict) -> s
             "openai_error": response.text[:500] or "OpenAI Realtime call failed",
             "sdp_offer_length": len(sdp_offer.encode("utf-8")),
             "sdp_offer_first_line": sdp_offer.splitlines()[0] if sdp_offer else "",
+            "sdp_offer_ends_with_crlf": sdp_offer.endswith("\r\n"),
         }
         raise HTTPException(status_code=502, detail=detail)
 

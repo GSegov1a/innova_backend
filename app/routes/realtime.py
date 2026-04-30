@@ -36,12 +36,12 @@ async def create_realtime_sdp(
     """Crea una sesión WebRTC Realtime y devuelve el SDP answer de OpenAI."""
     verify_device_token(x_device_token)
 
-    sdp_offer = (await request.body()).decode("utf-8").strip()
+    sdp_offer = (await request.body()).decode("utf-8")
 
-    if not sdp_offer:
+    if not sdp_offer.strip():
         raise HTTPException(status_code=400, detail="SDP offer is required")
 
-    if not sdp_offer.startswith("v=0"):
+    if not sdp_offer.lstrip().startswith("v=0"):
         raise HTTPException(
             status_code=400,
             detail=f"Invalid SDP offer received. Length: {len(sdp_offer)}",
